@@ -1,6 +1,6 @@
 from fastmcp import FastMCP
 from models import Expenses
-from database import engine, SessionLocal, Base
+from database import get_session_local, Base, init_db
 from sqlalchemy import func
 import json
 
@@ -14,15 +14,19 @@ if __name__ == '__main__':
     mcp.run()
 '''   
 
-Base.metadata.create_all(engine)
-
 mcp = FastMCP("Expense Tracker")
+
+def _ensure_db():
+    if not getattr(_ensure_db, "_done", False):
+        init_db()
+        _ensure_db._done = True
 
 @mcp.tool
 def add_expense(date: str, amount: float, category: str, subcategory: str = "", note: str = ""):
     """ Add a new expense record"""
 
-    db = SessionLocal()
+    _ensure_db()
+    db = get_session_local()()
 
     try:
         expense = Expenses(
@@ -51,8 +55,9 @@ def add_expense(date: str, amount: float, category: str, subcategory: str = "", 
 @mcp.tool
 def list_expenses(start_date: str, end_date: str):
     """List expense entries within an inclusive date range."""
-
-    db = SessionLocal()
+    
+    _ensure_db()
+    db = get_session_local()()
 
     try:
         expenses =  db.query(Expenses).filter(Expenses.date.between(start_date, end_date)).order_by(Expenses.date.asc()).all()
@@ -77,8 +82,9 @@ def list_expenses(start_date: str, end_date: str):
 @mcp.tool
 def get_expense(expense_id: int):
     """Get an expense by ID."""
-
-    db = SessionLocal()
+    
+    _ensure_db()
+    db = get_session_local()()
 
     try:
         expense = (
@@ -106,11 +112,12 @@ def get_expense(expense_id: int):
         db.close()
 
 @mcp.tool
-def update_expense( expense_id: int,  date: str = None, amount: float = None, category: str = None, subcategory: str = None,
-                    note: str = None):
+def update_expense( expense_id: int,  date: str | None = None, amount: float | None = None, category: str | None = None, subcategory: str | None = None,
+                    note: str | None = None):
     """Update an existing expense."""
 
-    db = SessionLocal()
+    _ensure_db()
+    db = get_session_local()()
 
     try:
         expense = (
@@ -157,7 +164,8 @@ def update_expense( expense_id: int,  date: str = None, amount: float = None, ca
 def delete_expense(expense_id: int):
     """Delete an expense by ID."""
 
-    db = SessionLocal()
+    _ensure_db()
+    db = get_session_local()()
 
     try:
         expense = (
@@ -191,10 +199,11 @@ def delete_expense(expense_id: int):
         db.close()
 
 @mcp.tool
-def summarise(start_date: str, end_date: str, category: str = None):
+def summarise(start_date: str, end_date: str, category: str | None = None):
     """Summarize expenses by category within an inclusive date range."""
 
-    db = SessionLocal()
+    _ensure_db()
+    db = get_session_local()()
 
     try:
         query = (
