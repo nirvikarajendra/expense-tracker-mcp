@@ -7,6 +7,5 @@ wheels/
 *.egg-info
 .env
 mcp.json
-__init__.py
 # Virtual environments
 .venv
