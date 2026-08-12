@@ -10,8 +10,10 @@ requires-python = ">=3.12"
 dependencies = [
     "aiosqlite>=0.22.1",
     "fastmcp>=3.4.6",
+    "google-adk>=2.6.3",
     "psycopg[binary]>=3.3.4",
     "sqlalchemy>=2.0.51",
+    "streamlit>=1.61.1",
 ]
 
 [project.scripts]
